@@ -16,3 +16,6 @@ const connectDB = async () => {
 };
 
 export default connectDB;
+console.log()
+
+console.log(process.env.MONGODB_URI)
