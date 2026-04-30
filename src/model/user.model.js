@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
@@ -10,6 +10,7 @@ const userSchema = new Schema(
       lowercase: true,
       unique: true,
       trim: true,
+      index: true,
     },
     email: {
       type: String,
@@ -24,11 +25,11 @@ const userSchema = new Schema(
       index: true,
     },
     avatar: {
-      type: String,
+      type: String, //cloudinary url
       required: true,
     },
     coverImage: {
-      type: String,
+      type: String, //cloudinary url
     },
     watchHistory: [
       {
@@ -83,4 +84,4 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-export const User = model("User", userSchema);
+export const User = mongoose.model("User", userSchema);

@@ -1,0 +1,26 @@
+$kind: http-request
+name: createUser
+method: POST
+url: 'http://localhost:8000/api/v1/users/createUser'
+order: 1000
+body:
+  type: formdata
+  content:
+    - key: fullName
+      type: text
+      value: ''
+    - key: email
+      type: text
+      value: ''
+    - key: username
+      type: text
+      value: ''
+    - key: password
+      type: text
+      value: ''
+    - key: avatar
+      type: file
+      src: ''
+    - key: coverImage
+      type: file
+      src: ''
