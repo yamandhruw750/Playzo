@@ -1,0 +1,4 @@
+name: Playzo
+values:
+  - key: server
+    value: ''
