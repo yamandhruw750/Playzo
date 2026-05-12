@@ -7,7 +7,11 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 //Generate Access and Refresh Token in function
 const generateAccessTokenAndRefreshTokens = async (userId) => {
   try {
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
@@ -15,12 +19,18 @@ const generateAccessTokenAndRefreshTokens = async (userId) => {
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
     throw new ApiError(
       500,
       "Something went wrong while generating refresh and access token"
     );
   }
 };
+
+//User Create Logic
 const createUser = asyncHandler(async (req, res) => {
   //Get user details from frontend
   const { fullName, email, username, password } = req.body;
@@ -73,18 +83,16 @@ const createUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar file is required");
   }
 
-  //create user object — create entry in db
+  //create user object - create entry in db
   const user = await User.create({
     fullName,
-    avatar: avatar.url,
-    coverImage: coverImage?.url || "",
     email,
     password,
     username: username.toLowerCase(),
+    avatar: avatar.url,
+    coverImage: coverImage?.url || "",
   });
 
-  //remove password and refresh token field from response
-  //findbyid search and give all the fileds but not -password -refreshToken
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
@@ -99,9 +107,10 @@ const createUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User registered successfully !!"));
 });
 
+//User Login Logic
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
-  if (!username || !email) {
+  if (!(username || email)) {
     throw new ApiError(400, "username and password is required ");
   }
   const user = await User.findOne({
@@ -111,6 +120,7 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, "User does not exist");
   }
+
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) {
     throw new ApiError(401, "Invalid user credentials");
@@ -144,6 +154,7 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
+//User Logout Logic
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
@@ -166,4 +177,6 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User Successfully Logout"));
 });
+
+// export functions
 export { createUser, loginUser, logoutUser };

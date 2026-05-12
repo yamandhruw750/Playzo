@@ -8,7 +8,7 @@ import { upload } from "../middleware/milter.middleware.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = Router();
-
+//Create Route
 router.route("/createUser").post(
   upload.fields([
     {
@@ -19,6 +19,7 @@ router.route("/createUser").post(
   ]),
   createUser
 );
+//Login Route
 router.route("/login").post(loginUser);
 
 //Secured routes
