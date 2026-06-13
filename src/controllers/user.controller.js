@@ -179,7 +179,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User Successfully Logout"));
 });
 
-//
+//refreshAccessToken
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
@@ -223,7 +223,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    throw new ApiError(401, error?.message || "Invaild refresh token")
+    throw new ApiError(401, error?.message || "Invaild refresh token");
   }
 });
 
