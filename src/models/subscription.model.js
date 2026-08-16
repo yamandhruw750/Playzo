@@ -2,7 +2,7 @@ import { Schema, Types, model } from "mongoose";
 
 const subscriptionSchema = new Schema(
   {
-    subscription: {
+    subscriber: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
