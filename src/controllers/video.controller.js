@@ -71,4 +71,10 @@ const createVideo = asyncHandler(async (req, res) => {
     await deleteFromCloudinary(thumbnailUpload.public_id, "image");
     throw error;
   }
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, createVideo, "Video created Successfully"));
 });
+
+export { createVideo };
