@@ -3,7 +3,9 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import mongoose from "mongoose";
 
+//Create Video Document
 const createVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
 
@@ -44,6 +46,11 @@ const createVideo = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Failed to upload video");
   }
 
+  if (typeof videoUpload.duration !== "number" || videoUpload.duration <= 0) {
+    await deleteFromCloudinary(videoUpload.public_id, "video");
+    throw new ApiError(500, "Unable to determine video duration");
+  }
+
   //Upload thumbnail and validate it
   const thumbnailUpload = await uploadOnCloudinary(thumbnail.path, "image");
 
@@ -59,7 +66,7 @@ const createVideo = asyncHandler(async (req, res) => {
       title: title.trim(),
       description: description.trim(),
       duration: videoUpload.duration,
-      owner: req.user._id,
+      owner,
       isPublished: false,
     });
     return res
@@ -67,14 +74,43 @@ const createVideo = asyncHandler(async (req, res) => {
       .json(new ApiResponse(201, video, "Video created successfully"));
   } catch (error) {
     await deleteFromCloudinary(videoUpload.public_id, "video");
-
     await deleteFromCloudinary(thumbnailUpload.public_id, "image");
     throw error;
   }
-
-  return res
-    .status(201)
-    .json(new ApiResponse(201, createVideo, "Video created Successfully"));
 });
 
-export { createVideo };
+//Get videos by ID
+const getVideoById = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  //Validate if video Exists 
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video ID");
+  }
+
+  //Fetch video and populate with owner info
+  const video = await Video.findById(videoId).populate(
+    "owner",
+    "username fullName avatar"
+  );
+
+  //Validate video
+  if (!video) {
+    throw new ApiError(404, "Video not found!");
+  }
+
+  //return the video
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "Video fetched successfully"));
+
+  // if (
+  //   !video.isPublished &&
+  //   video.owner._id.toString() !== req.user?._id.toString()
+  // ) {
+  //   throw new ApiError(403, "This video is not published");
+  // }
+});
+
+//
+export { createVideo, getVideoById };
